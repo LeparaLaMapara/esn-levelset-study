@@ -91,6 +91,29 @@ def main() -> None:
         macros.append(f"\\newcommand{{\\{tex_key(block, ds, arch, '' if readout=='sgd' else 'ridge', 'seeds')}}}{{{len(rs)}}}")
 
     macros.append(f"\\newcommand{{\\totalruns}}{{{len(rows)}}}")
+
+    # Derived statistics the argument leans on, computed here rather than by
+    # hand: how much the reservoir sweep moves the result, against how much the
+    # random seed moves it for one fixed configuration.
+    def runs_matching(prefix: str, metric: str = "change_iou") -> list[float]:
+        return [r[metric] for r in rows
+                if r["run"].startswith(prefix) and r.get(metric) is not None]
+
+    seed_rep = [r["change_iou"] for r in rows
+                if r["run"].startswith("G_wsd_esn_s") and r.get("readout", "sgd") == "sgd"]
+    for name, vals in [("esnsweep", runs_matching("E_wsd_esn")),
+                       ("lsmsweep", runs_matching("E_wsd_lsm")),
+                       ("seedrep", seed_rep)]:
+        if len(vals) > 1:
+            macros.append(f"\\newcommand{{\\{name}min}}{{{min(vals):.3f}}}")
+            macros.append(f"\\newcommand{{\\{name}max}}{{{max(vals):.3f}}}")
+            macros.append(f"\\newcommand{{\\{name}sd}}{{{stats.stdev(vals):.3f}}}")
+            macros.append(f"\\newcommand{{\\{name}cells}}{{{len(vals)}}}")
+
+    firing = runs_matching("E_wsd_lsm", "firing_rate")
+    if firing:
+        macros.append(f"\\newcommand{{\\lsmfiringmin}}{{{min(firing):.2f}}}")
+        macros.append(f"\\newcommand{{\\lsmfiringmax}}{{{max(firing):.2f}}}")
     (papers / "numbers.tex").write_text("\n".join(macros) + "\n", encoding="utf-8")
 
     tables = []

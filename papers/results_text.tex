@@ -74,3 +74,29 @@ and \Gwsdesnrolloutchangeiou{} against \Gwsdgrurolloutchangeiou{}). A model
 that predicts little change tracks a slow target well in aggregate and captures
 none of its motion. Reporting only one of these numbers would support either
 conclusion, which is why both are in the table.
+
+\subsection{The parameters the original blamed do not move the result}
+
+Sweeping the spectral radius from 0.5 to 1.5 and the leaking rate from 0.0078
+to 1.0, in a configuration where the model trains, moves change IoU between
+\esnsweepmin{} and \esnsweepmax{} across \esnsweepcells{} cells, a standard
+deviation of \esnsweepsd{} (Figure~\ref{fig:sweep}). For comparison, three
+seeds of one fixed configuration vary by \seedrepsd{}. The reservoir
+parameters the original identified as the cause of failure change the outcome
+less than the random seed does.
+
+The liquid's parameters behave the same way. Its firing rate responds strongly
+to the threshold, from \lsmfiringmin{} to \lsmfiringmax{} spikes per neuron per
+step, while its accuracy stays between \lsmsweepmin{} and \lsmsweepmax{}. The
+liquid is therefore robust in accuracy and adjustable in cost, which is the
+useful direction for a spiking model.
+
+\subsection{Training on the part of the sequence that moves}
+
+The level set is static for tens of iterations and then collapses, so uniform
+sampling spends most of training on frames where nothing happens. Restricting
+training to samples whose target differs from the input by at least half a
+percent of pixels (Table~\ref{tab:blockH}) leaves the comparison unchanged
+(CGRU \Hwsdgruchangeiou{}, CESN \Hwsdesnchangeiou{}, CLSM
+\Hwsdlsmchangeiou{}) while reducing the training set. The stillness was
+neither helping nor hurting; it was simply padding.

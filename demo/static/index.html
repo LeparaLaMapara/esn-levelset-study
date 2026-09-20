@@ -75,14 +75,18 @@
   <div class="card">
     <div class="row">
       <div><label for="p-sample">image</label><select id="p-sample"></select></div>
-      <div><label>start iteration <span id="t-v" class="metric">20</span></label><input type="range" id="t" min="5" max="80" step="1" value="20" /></div>
+      <div><label>start iteration <span id="t-v" class="metric">45</span></label><input type="range" id="t" min="5" max="80" step="1" value="45" /></div>
       <button id="predict">Predict</button>
     </div>
     <div class="grid" id="truth"></div>
     <div class="grid" id="preds"></div>
   </div>
 
-  <h2>3. What the study found</h2>
+  <h2>3. Side by side, on the hardest moments</h2>
+  <p class="note">Each row is a test image at the moment its front moves most. Orange outlines the pixels that change: everything outside it is obtained by copying the input.</p>
+  <div class="card"><img src="/static/qualitative.png" alt="Input images, the Chan-Vese target ten iterations ahead, and each model's prediction side by side" style="width:100%;border-radius:10px"/></div>
+
+  <h2>4. What the study found</h2>
   <div class="card" id="results">
     <p class="note">Loading measured results.</p>
   </div>
