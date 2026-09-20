@@ -115,8 +115,12 @@ class EchoStateCell(nn.Module):
 
     def _recurrent(self, h: torch.Tensor) -> torch.Tensor:
         if self.sparse:
-            # torch.sparse CSR expects (out, in) @ (in, batch).
-            return torch.sparse.mm(self.w_sparse, h.t()).t()
+            # torch.sparse CSR expects (out, in) @ (in, batch), and cuSPARSE has
+            # no half precision SpMM on this architecture, so the reservoir step
+            # is forced to float32 inside an autocast region.
+            with torch.autocast("cuda", enabled=False):
+                out = torch.sparse.mm(self.w_sparse, h.float().t()).t()
+            return out.to(h.dtype)
         return F.linear(h, self.w)
 
     def forward(self, u: torch.Tensor, h: torch.Tensor) -> torch.Tensor:

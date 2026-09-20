@@ -89,7 +89,10 @@ class LIFReservoir(nn.Module):
 
     def _recurrent(self, s: torch.Tensor) -> torch.Tensor:
         if self.sparse:
-            return torch.sparse.mm(self.w_sparse, s.t()).t()
+            # cuSPARSE SpMM is float32 only here; see the note in models.py.
+            with torch.autocast("cuda", enabled=False):
+                out = torch.sparse.mm(self.w_sparse, s.float().t()).t()
+            return out.to(s.dtype)
         return F.linear(s, self.w)
 
     def forward(self, u: torch.Tensor, state: tuple | None = None):

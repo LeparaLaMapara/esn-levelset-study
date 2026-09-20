@@ -1,0 +1,11 @@
+# Render blueprint. The demo is a small FastAPI service: it solves the Chan-Vese
+# level set live on CPU and runs the trained checkpoints bundled in demo/models.
+services:
+  - type: web
+    name: levelset-reservoirs
+    runtime: python
+    plan: free
+    region: frankfurt
+    buildCommand: pip install --upgrade pip && pip install -r demo/requirements.txt
+    startCommand: uvicorn demo.app:app --host 0.0.0.0 --port $PORT
+    autoDeploy: true

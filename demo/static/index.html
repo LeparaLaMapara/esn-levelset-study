@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Learning the level set: reservoirs against trained recurrent networks</title>
+<meta name="description" content="A live Chan-Vese level set, and what echo state, liquid state and gated recurrent models predict about where it moves next." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#faf6ee; --ink:#201911; --clay:#b5501e; --green:#1f5c3a; --ochre:#a8742a;
+    --muted:#6e6353; --line:#e3dbcb; --surface:#fffdf8;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#171310; --ink:#f3ece1; --surface:#1e1913; --line:#332a20; --muted:#a2957f;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,system-ui,sans-serif;line-height:1.55}
+  .stripe{height:4px;background:linear-gradient(90deg,var(--clay) 0 25%,var(--ochre) 25% 50%,var(--green) 50% 75%,var(--ink) 75% 100%)}
+  main{max-width:1060px;margin:0 auto;padding:0 16px 80px}
+  h1{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:clamp(1.7rem,4vw,2.6rem);line-height:1.15;margin:40px 0 8px}
+  h2{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:1.35rem;margin:44px 0 6px}
+  p.lead{font-size:1.06rem;color:var(--muted);max-width:66ch}
+  p{max-width:70ch}
+  a{color:var(--clay)}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:16px}
+  .row{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
+  label{font-size:.82rem;color:var(--muted);display:block;margin-bottom:4px}
+  input[type=range]{width:180px}
+  select,button{font:inherit;padding:8px 12px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+  button{background:var(--clay);color:#fff;border-color:var(--clay);cursor:pointer}
+  button:disabled{opacity:.55;cursor:default}
+  .strip{display:flex;gap:10px;overflow-x:auto;padding-top:12px}
+  .tile{text-align:center;flex:0 0 auto}
+  .tile img{display:block;border:1px solid var(--line);border-radius:8px;image-rendering:pixelated;background:#fff}
+  .tile span{display:block;font:400 .72rem/1.6 "JetBrains Mono",monospace;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:12px}
+  .metric{font:400 .74rem/1.5 "JetBrains Mono",monospace;color:var(--muted)}
+  .best{color:var(--green);font-weight:500}
+  table{border-collapse:collapse;width:100%;font-size:.88rem;margin-top:10px}
+  th,td{text-align:left;border-bottom:1px solid var(--line);padding:7px 8px}
+  th{font-weight:500;color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
+  .note{font-size:.85rem;color:var(--muted)}
+  .pill{display:inline-block;font:400 .72rem/1 "JetBrains Mono",monospace;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:5px 9px;margin-right:6px}
+  footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-size:.86rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<main>
+  <h1>Learning the level set</h1>
+  <p class="lead">A Chan-Vese level set runs <strong>live on this server</strong>, one iteration at a time. Underneath, four kinds of recurrent model try to predict where the front moves next: two of them are reservoirs whose recurrent weights are never trained.</p>
+  <p><span class="pill" id="pill-models">models loading</span><span class="pill" id="pill-samples">samples loading</span><span class="pill">64 x 64</span></p>
+
+  <h2>1. The level set, running now</h2>
+  <p class="note">This is the data generator of the study, executing on request. Change the parameters and the partial differential equation is solved again from the checkerboard start.</p>
+  <div class="card">
+    <div class="row">
+      <div><label for="sample">image</label><select id="sample"></select></div>
+      <div><label>smoothing mu <span id="mu-v" class="metric">0.20</span></label><input type="range" id="mu" min="0" max="1" step="0.05" value="0.2" /></div>
+      <div><label>time step dt <span id="dt-v" class="metric">0.50</span></label><input type="range" id="dt" min="0.1" max="2" step="0.1" value="0.5" /></div>
+      <div><label>iterations <span id="it-v" class="metric">100</span></label><input type="range" id="it" min="10" max="300" step="10" value="100" /></div>
+      <button id="run">Evolve</button>
+    </div>
+    <div class="strip" id="frames"></div>
+    <p class="note" id="moved"></p>
+  </div>
+
+  <h2>2. What each model predicts</h2>
+  <p class="note">Given the last few masks, each model predicts the mask <em>ten iterations ahead</em>. The orange panel is the region that actually changes, which is the only part of the image where the models can distinguish themselves: predicting no change at all already scores about 0.99 on a whole image IoU.</p>
+  <div class="card">
+    <div class="row">
+      <div><label for="p-sample">image</label><select id="p-sample"></select></div>
+      <div><label>start iteration <span id="t-v" class="metric">20</span></label><input type="range" id="t" min="5" max="80" step="1" value="20" /></div>
+      <button id="predict">Predict</button>
+    </div>
+    <div class="grid" id="truth"></div>
+    <div class="grid" id="preds"></div>
+  </div>
+
+  <h2>3. What the study found</h2>
+  <div class="card" id="results">
+    <p class="note">Loading measured results.</p>
+  </div>
+
+  <footer>
+    <p>Study and paper: an independent re-examination of Mashinini (2022), <em>Learning Level Set Method by Echo State Network for Image Segmentation</em> (MSc, University of the Witwatersrand). Every number on this page is measured by the code in the repository; nothing is typed in by hand.</p>
+  </footer>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+const tile = (src, caption) => `<div class="tile"><img src="${src}" alt="${caption}" width="192" height="192"/><span>${caption}</span></div>`;
+
+async function loadSamples(){
+  const r = await fetch('/api/samples'); const d = await r.json();
+  const opts = d.samples.map(s => `<option value="${s.index}">image ${s.index + 1}</option>`).join('');
+  $('#sample').innerHTML = opts; $('#p-sample').innerHTML = opts;
+  $('#pill-samples').textContent = `${d.samples.length} test images`;
+}
+async function health(){
+  const d = await (await fetch('/healthz')).json();
+  $('#pill-models').textContent = `${d.models.length} models loaded`;
+}
+for (const [id, out, fmt] of [['mu','#mu-v',v=>(+v).toFixed(2)],['dt','#dt-v',v=>(+v).toFixed(2)],['it','#it-v',v=>v],['t','#t-v',v=>v]]){
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', () => { document.querySelector(out).textContent = fmt(el.value); });
+}
+$('#run').addEventListener('click', async () => {
+  const btn = $('#run'); btn.disabled = true; btn.textContent = 'Solving';
+  const body = { sample:+$('#sample').value, mu:+$('#mu').value, dt:+$('#dt').value, iterations:+$('#it').value, frames:7 };
+  const d = await (await fetch('/api/evolve', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)})).json();
+  $('#frames').innerHTML = tile(d.image, 'image') + d.frames.map(f => tile(f.mask, 'iteration ' + f.t)).join('');
+  $('#moved').textContent = `${(d.moved*100).toFixed(1)} percent of pixels differ between the first and last iterate.`;
+  btn.disabled = false; btn.textContent = 'Evolve';
+});
+$('#predict').addEventListener('click', async () => {
+  const btn = $('#predict'); btn.disabled = true; btn.textContent = 'Predicting';
+  const body = { sample:+$('#p-sample').value, t:+$('#t').value, horizon:10 };
+  const d = await (await fetch('/api/predict', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)})).json();
+  if (d.error){ $('#truth').innerHTML = `<p class="note">${d.error}</p>`; btn.disabled=false; btn.textContent='Predict'; return; }
+  $('#truth').innerHTML = tile(d.image,'image') + tile(d.previous,`mask at ${d.t}`) + tile(d.target,`Chan-Vese at ${d.t + d.horizon}`) + tile(d.change,'region that changes');
+  const best = Math.max(...d.predictions.map(p => p.change_iou));
+  $('#preds').innerHTML = d.predictions.map(p =>
+    `<div class="tile"><img src="${p.mask}" alt="${p.label}" width="192" height="192"/>
+     <span>${p.label}</span>
+     <span class="${p.change_iou===best?'best':''}">change IoU ${p.change_iou.toFixed(3)}</span>
+     <span>IoU ${p.iou.toFixed(3)}</span></div>`).join('');
+  btn.disabled = false; btn.textContent = 'Predict';
+});
+(async () => {
+  const d = await (await fetch('/api/results')).json();
+  if (!d || !d.table){ $('#results').innerHTML = '<p class="note">Results not bundled yet.</p>'; return; }
+  const head = d.columns.map(c => `<th>${c}</th>`).join('');
+  const rows = d.table.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('');
+  $('#results').innerHTML = `<p class="note">${d.caption}</p><table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table>`;
+})();
+loadSamples(); health();
+</script>
+</body>
+</html>
