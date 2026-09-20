@@ -39,6 +39,7 @@ class GPUSequences:
         std: float = 1.0,
         seed: int = 0,
         drop_last: bool = False,
+        min_change: float = 0.0,
     ):
         self.split = split
         self.window = window
@@ -55,8 +56,22 @@ class GPUSequences:
         last = t - horizon + 1
         idx_i = torch.arange(n, device=self.device).repeat_interleave(last - window)
         idx_t = torch.arange(window, last, device=self.device).repeat(n)
+
+        # The Chan-Vese front sits on the checkerboard for tens of iterations,
+        # collapses over a narrow active phase, then stops. Sampling uniformly
+        # over t therefore spends most of training on frames where nothing
+        # happens. `min_change` keeps only samples whose target differs from the
+        # last input frame by at least that fraction of pixels. Zero reproduces
+        # the thesis's uniform sampling.
+        if min_change > 0:
+            m = split.masks
+            moved = (m[idx_i, idx_t + horizon - 1] != m[idx_i, idx_t - 1]).float().mean((1, 2))
+            keep = moved >= min_change
+            idx_i, idx_t = idx_i[keep], idx_t[keep]
+
         self.index_i, self.index_t = idx_i, idx_t
         self.size = idx_i.numel()
+        self.min_change = min_change
 
     def __len__(self) -> int:
         full = self.size // self.batch_size

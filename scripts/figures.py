@@ -84,15 +84,26 @@ def qualitative(runs: Path, out: Path, dataset: str, block: str, device, rows: i
     mean = float(splits["train"].images.mean())
     std = float(splits["train"].images.std().clamp_min(1e-6))
 
-    # A fixed, interesting set: the test images whose level set moves most.
+    # Pick both the images and the moment. The level set collapses fastest in
+    # its first iterations and has converged by the end, so a panel taken at a
+    # fixed early t shows a checkerboard mid collapse and tells the reader
+    # nothing. For each image the window is placed where the next `horizon`
+    # iterations change the most, which is where the models are separable.
     masks = split.masks.float()
-    movement = (masks[:, window + horizon - 1] != masks[:, window - 1]).float().mean((1, 2))
+    t_max = masks.shape[1] - horizon
+    change_at = torch.stack([
+        (masks[:, t + horizon - 1] != masks[:, t - 1]).float().mean((1, 2))
+        for t in range(window, t_max)
+    ])                                            # (T, N)
+    best_t = change_at.argmax(0) + window
+    movement = change_at.max(0).values
     pick = torch.argsort(movement, descending=True)[:rows]
+    ts = best_t[pick]
 
     images = split.images[pick]
-    frames = masks[pick][:, :window]
-    target = masks[pick][:, window + horizon - 1]
-    prev = masks[pick][:, window - 1]
+    frames = torch.stack([masks[i, t - window:t] for i, t in zip(pick.tolist(), ts.tolist())])
+    target = torch.stack([masks[i, t + horizon - 1] for i, t in zip(pick.tolist(), ts.tolist())])
+    prev = torch.stack([masks[i, t - 1] for i, t in zip(pick.tolist(), ts.tolist())])
 
     x = torch.stack([(images.unsqueeze(1).expand_as(frames) - mean) / std, frames], dim=2)
 
@@ -106,7 +117,7 @@ def qualitative(runs: Path, out: Path, dataset: str, block: str, device, rows: i
     fig, axes = plt.subplots(rows, n_cols, figsize=(1.7 * n_cols, 1.8 * rows))
     for r in range(rows):
         panels = [(images[r].cpu(), "Image", "gray"),
-                  (prev[r].cpu(), f"Mask t", "gray"),
+                  (prev[r].cpu(), f"Mask at t={ts[r].item()}", "gray"),
                   (target[r].cpu(), f"Chan-Vese t+{horizon}", "gray")]
         for arch in preds:
             panels.append((preds[arch][r], LABEL.get(arch, arch), "gray"))
@@ -213,6 +224,43 @@ def sweep_heatmap(runs: Path, out: Path):
     fig.tight_layout(); fig.savefig(out / "sweep_esn.png", dpi=170); plt.close(fig)
 
 
+def trajectory(out: Path, dataset: str, device, rows: int = 3):
+    """The evolution itself: checkerboard, collapse, converged segmentation.
+
+    Included because a reader needs to see that the target sequence is a real
+    segmentation process, not a static mask with noise on it.
+    """
+    cache = build_cache(dataset, Path("T:/datasets/levelset"), Path("T:/datasets/levelset/cache"), 100)
+    splits = to_gpu_splits(cache, device, seed=42)
+    split = splits["test"]
+    masks = split.masks.float()
+    moved = (masks[:, -1] != masks[:, 0]).float().mean((1, 2))
+    pick = torch.argsort(moved, descending=True)[:rows]
+    steps = [0, 4, 9, 19, 39, 69, 99]
+    fig, axes = plt.subplots(rows, len(steps) + 2, figsize=(1.5 * (len(steps) + 2), 1.7 * rows))
+    for r, idx in enumerate(pick.tolist()):
+        axes[r, 0].imshow(split.images[idx].cpu().numpy(), cmap="gray")
+        axes[r, 0].set_xticks([]); axes[r, 0].set_yticks([])
+        if r == 0:
+            axes[r, 0].set_title("image", fontsize=8)
+        for c, t in enumerate(steps, start=1):
+            axes[r, c].imshow(masks[idx, t].cpu().numpy(), cmap="gray", vmin=0, vmax=1)
+            axes[r, c].set_xticks([]); axes[r, c].set_yticks([])
+            if r == 0:
+                axes[r, c].set_title(f"t={t + 1}", fontsize=8)
+        # BSD ships boundary maps rather than binary object masks, so its truth
+        # channel is empty and the column is left out rather than shown black.
+        if float(split.truth.float().sum()) > 0:
+            axes[r, -1].imshow(split.truth[idx].cpu().numpy(), cmap="gray", vmin=0, vmax=1)
+            if r == 0:
+                axes[r, -1].set_title("human", fontsize=8)
+        else:
+            axes[r, -1].axis("off")
+        axes[r, -1].set_xticks([]); axes[r, -1].set_yticks([])
+    fig.suptitle(f"{dataset.upper()}: the Chan-Vese trajectory the models have to predict", fontsize=9)
+    fig.tight_layout(); fig.savefig(out / f"trajectory_{dataset}.png", dpi=170); plt.close(fig)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--runs", default="T:/levelset-runs")
@@ -228,6 +276,7 @@ def main() -> None:
             qualitative(runs, out, ds, block, device)
             rollout_curve(runs, out, ds, block, device)
             horizon_curve(runs, out, ds, block)
+        trajectory(out, ds, device)
     sweep_heatmap(runs, out)
     print("figures in", out.resolve())
 

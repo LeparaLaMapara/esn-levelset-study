@@ -54,6 +54,8 @@ def parse() -> argparse.Namespace:
     p.add_argument("--rollout", type=int, default=25)
     p.add_argument("--horizon", type=int, default=1,
                    help="predict M_{t+horizon}; the thesis is 1, which copying nearly solves")
+    p.add_argument("--min-change", type=float, default=0.0,
+                   help="keep only samples where at least this fraction of pixels moves")
     p.add_argument("--eval-horizons", default="1,5,10,25",
                    help="extra horizons scored at test time, comma separated")
 
@@ -163,7 +165,8 @@ def main() -> None:
     seqs = {
         name: GPUSequences(split, window=a.window, horizon=a.horizon, batch_size=a.batch_size,
                            augment=bool(a.augment) and name == "train",
-                           mean=mean, std=std, seed=a.seed, drop_last=(name == "train"))
+                           mean=mean, std=std, seed=a.seed, drop_last=(name == "train"),
+                           min_change=a.min_change)
         for name, split in splits.items()
     }
 
@@ -278,6 +281,7 @@ def main() -> None:
         "change_iou": round(test["change_iou"], 6),
         "change_f1": round(test["change_f1"], 6),
         "horizon": a.horizon,
+        "min_change": a.min_change,
         **horizons,
         "val_iou": round(best["iou"], 6),
         "arch": a.arch, "dataset": a.dataset, "seed": a.seed, "window": a.window,

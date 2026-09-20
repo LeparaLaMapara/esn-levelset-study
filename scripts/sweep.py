@@ -25,6 +25,9 @@ Blocks, each of which answers one question:
                       train this" from "the head cannot express this".
   G  main comparison the study's own setting: spatial head, window 4, ten steps
                       ahead, AdamW. This is the table the conclusions rest on.
+  H  active phase    G restricted to samples where the front actually moves.
+                      The level set is static for tens of iterations, then
+                      collapses; uniform sampling trains mostly on stillness.
 """
 from __future__ import annotations
 
@@ -89,6 +92,14 @@ def trials(block: str) -> list[dict]:
                             head="fc", window=4, horizon=10, readout="ridge", freeze_encoder=1,
                             epochs=1))
 
+    if block in ("H", "all"):
+        # The same comparison restricted to the active phase of the evolution.
+        for ds, seed, arch in itertools.product(DATASETS, SEEDS,
+                                                ["esn", "lsm", "gru", "lstm", "3dcnn", "copy"]):
+            out.append(dict(name=f"H_{ds}_{arch}_s{seed}", arch=arch, dataset=ds, seed=seed,
+                            head="spatial", window=4, horizon=10, epochs=10,
+                            optimizer="adamw", lr=1e-3, weight_decay=0.01, min_change=0.005))
+
     if block in ("E", "all"):
         for rho, leak in itertools.product([0.5, 0.9, 1.1, 1.5], [0.0078125, 0.0713, 0.5, 1.0]):
             out.append(dict(name=f"E_wsd_esn_r{rho}_l{leak}", arch="esn", dataset="wsd", seed=1,
@@ -108,6 +119,7 @@ FLAGS = {
     "spectral_radius": "--spectral-radius", "leak": "--leak",
     "lsm_alpha": "--lsm-alpha", "lsm_threshold": "--lsm-threshold",
     "optimizer": "--optimizer", "lr": "--lr", "weight_decay": "--weight-decay",
+    "min_change": "--min-change",
 }
 
 
@@ -122,7 +134,7 @@ def command(trial: dict) -> list[str]:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--block", default="all", choices=["A", "B", "C", "D", "E", "F", "G", "all"])
+    ap.add_argument("--block", default="all", choices=["A", "B", "C", "D", "E", "F", "G", "H", "all"])
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--redo", action="store_true", help="ignore existing metrics.json")
     a = ap.parse_args()
