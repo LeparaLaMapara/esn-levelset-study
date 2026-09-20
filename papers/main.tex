@@ -1,0 +1,202 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage[hidelinks]{hyperref}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{microtype}
+
+% Numbers come from papers/numbers.tex, which is generated from the runs by
+% scripts/make_paper_numbers.py. Nothing in the prose below is typed by hand.
+\input{numbers}
+
+\title{Reservoirs were not the problem:\\
+revisiting echo state and liquid state networks\\
+for learning level set evolution}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+An MSc dissertation (Mashinini, 2022) formulated the Chan--Vese variational
+level set as a spatiotemporal learning problem and compared a convolutional
+echo state network against trained convolutional recurrent networks, reporting
+that the echo state network failed and attributing the failure to the leaking
+rate and spectral radius of its reservoir. We reproduce that study on GPU and
+find that its comparison was made in a regime where no model could have
+succeeded. Predicting the next level set iterate is almost solved by copying
+the previous mask, which scores an IoU of \AwsdcopyIoU{} and sits above every
+number the original reported; and under the published optimisation recipe every
+architecture, trained or untrained, collapses to a constant output. We correct
+three things: the readout, which reconstructed a $64 \times 64$ mask from a
+globally pooled vector; the evaluation, which measured static background rather
+than the moving front; and the horizon, which was one iteration. Under the
+corrected setting the ordering reverses. We also add the arm the original
+reviewed but never implemented, a liquid state machine with leaky integrate and
+fire neurons, and a closed form ridge readout, which is how a reservoir is
+normally trained. All experiments run on a single consumer GPU with the data
+resident in video memory; the study comprises \totalruns{} runs.
+\end{abstract}
+
+\section{Introduction}
+
+The variational level set evolves a contour under a partial differential
+equation, one iterate at a time, until it settles on a segmentation. Treating
+that evolution as a sequence to be learned is attractive: a network that
+predicts the next iterate is a surrogate for the solver, and the cost of the
+solver is what limits level set methods in practice.
+
+Mashinini (2022) formulated this task and asked a specific question: can an
+echo state network, whose recurrent weights are fixed at random and never
+trained, learn the evolution as well as a recurrent network trained end to end?
+The answer reported was no, decisively, and the cause identified was the
+reservoir's memory parameters.
+
+The question is worth asking again, for three reasons that have nothing to do
+with reservoirs and everything to do with how the comparison was set up.
+
+\paragraph{A no-op beats every published number.}
+The Chan--Vese front moves roughly half a percent of pixels per iteration. A
+model that predicts no change at all therefore scores an IoU of
+\AwsdcopyIoU{} on WSD, well above the best model in the original study. A
+comparison whose winner loses to the identity function is not measuring what it
+intends to measure.
+
+\paragraph{The published recipe does not train.}
+Reproducing the stated optimiser (stochastic gradient descent, learning rate
+0.1, weight decay 0.1) collapses every architecture to a constant output, so
+the differences between cells in the original tables are differences between
+degenerate models.
+
+\paragraph{The readout discards the geometry.}
+The architecture pools convolutional features to a vector and predicts 4096
+independent logits from it. A segmentation mask that is almost identical to its
+input has to be rebuilt from scratch through that bottleneck.
+
+We separate these confounds experimentally, add the missing spiking arm, and
+report what the comparison looks like once the task can distinguish models at
+all.
+
+\section{Background}
+
+\subsection{The Chan--Vese level set as a sequence}
+
+For a grayscale image $I$ and a level set function $\phi$, the piecewise
+constant Chan--Vese model evolves
+\begin{equation}
+\frac{\partial \phi}{\partial t} = \delta_\epsilon(\phi)
+\left[ \mu \, \mathrm{div}\!\left(\frac{\nabla \phi}{|\nabla \phi|}\right)
+- \lambda_1 (I - c_1)^2 + \lambda_2 (I - c_2)^2 \right],
+\end{equation}
+with $c_1$ and $c_2$ the means inside and outside the contour. Following the
+original, we use $\lambda_1 = \lambda_2 = 1$, $\mu = 0.2$, $\Delta t = 0.5$, a
+checkerboard initialisation and 100 iterations per image, and keep every
+iterate, so each image yields a sequence of 100 binary masks
+$M_1, \dots, M_{100}$. The learning task is to predict $M_{t+k}$ from the image
+and the preceding masks.
+
+\subsection{Reservoir computing}
+
+An echo state network replaces trained recurrence with a fixed random one:
+\begin{equation}
+h_t = (1-a) h_{t-1} + a \tanh(W_{\text{in}} u_t + W h_{t-1}),
+\end{equation}
+where only a readout is fitted. The spectral radius of $W$ and the leaking rate
+$a$ set how long the state remembers. A liquid state machine replaces the
+continuous state with spiking neurons; the original dissertation reviews liquid
+state machines and does not implement one. We implement both.
+
+\section{Method}
+
+\subsection{Task}
+
+A sample is a window of $w$ consecutive masks together with the image, and the
+target is the mask $k$ iterations after the window. The original sets $w=1$ and
+$k=1$: one previous frame, one step ahead. With $w=1$ the recurrent layer runs
+over a sequence of length one, so no recurrent model can express memory,
+which is a property of the task as posed rather than of any architecture.
+
+\subsection{Architectures}
+
+All arms share a four block convolutional encoder. The recurrent arms differ
+only in the cell: CRNN, CLSTM, CGRU, the echo state reservoir (CESN) and the
+liquid state machine (CLSM). The 3DCNN convolves over time instead. Two
+controls are included that the original lacked in part: white noise, and
+copying the last input mask.
+
+Two readouts are compared. The \emph{fully connected} head is the original's:
+pool to a vector, then two linear layers to 4096 logits. The \emph{spatial}
+head projects the recurrent state to an $8 \times 8$ grid, concatenates the
+encoder's feature map for the most recent frame, upsamples, and takes the last
+input mask as an explicit channel of its final convolution.
+
+\subsection{Reservoir training}
+
+Reservoirs are normally fitted by ridge regression on the collected states,
+which requires no backpropagation. The original trained its readout by gradient
+descent, paying the cost of a trained recurrent network while keeping the
+capacity of an untrained one. We report both: gradient descent, and the closed
+form
+\begin{equation}
+W_{\text{out}} = (H^\top H + \lambda \mathbb{I})^{-1} H^\top Y ,
+\end{equation}
+accumulated over the training set as sufficient statistics whose size depends
+on the reservoir, not on the data.
+
+\subsection{Metrics}
+
+Alongside the original's IoU, precision, recall and F1, we report
+
+\begin{itemize}
+\item \textbf{change IoU}: the same overlap computed only on pixels whose label
+differs between the last input mask and the target. This is the part of the
+image the model has to get right and the part that copying cannot;
+\item \textbf{boundary F1}: agreement of the mask boundaries within one pixel,
+which measures the failure the original observed but never quantified;
+\item \textbf{rollout IoU}: accuracy when the model is fed its own predictions
+for 25 steps, so errors compound.
+\end{itemize}
+
+\subsection{Implementation}
+
+Everything runs on one NVIDIA RTX 2070 SUPER. The Chan--Vese sequences are
+generated on the GPU with a semi-implicit scheme; a database's images and masks
+stay resident in video memory, and batching, augmentation and standardisation
+are CUDA operations, so there is no host side input pipeline. Reservoir
+recurrence uses sparse CSR matrix multiplication, in float32 because cuSPARSE
+provides no half precision path on this architecture, inside otherwise
+mixed precision training.
+
+\input{tables}
+
+\section{Results}
+
+\input{results_text}
+
+\section{Discussion}
+
+\input{discussion_text}
+
+\section{Limitations}
+
+A single consumer GPU, $64 \times 64$ inputs, and two of the original's four
+databases. The CIFAR scale experiments of the original (millions of generated
+examples) are not reproduced. One PDE, one solver, one parameter setting of
+that solver. The spatial head's skip connection includes the previous mask
+explicitly, which is the right inductive bias for this task and would not
+transfer unchanged to a task whose output is unrelated to its input.
+
+\section{Reproducing this}
+
+Code, configurations and the exact commands are at
+\url{https://github.com/LeparaLaMapara/esn-levelset-study}. Every number in
+this paper is generated from the run directories by
+\texttt{scripts/make\_paper\_numbers.py}; none is typed into the text.
+
+\end{document}

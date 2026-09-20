@@ -1,0 +1,54 @@
+{
+  "caption": "WSD test split, predicting ten Chan-Vese iterations ahead, seed 1. Change IoU scores only the pixels that move.",
+  "columns": [
+    "model",
+    "IoU",
+    "change IoU",
+    "rollout IoU",
+    "fit seconds"
+  ],
+  "table": [
+    [
+      "Copy previous (control)",
+      "0.925",
+      "0.000",
+      "0.967",
+      "0"
+    ],
+    [
+      "CGRU (trained)",
+      "0.964",
+      "0.502",
+      "0.901",
+      "83"
+    ],
+    [
+      "CLSTM (trained)",
+      "0.961",
+      "0.571",
+      "0.697",
+      "49"
+    ],
+    [
+      "3DCNN (trained)",
+      "0.937",
+      "0.487",
+      "0.583",
+      "70"
+    ],
+    [
+      "CESN (reservoir, untrained recurrence)",
+      "0.961",
+      "0.563",
+      "0.707",
+      "50"
+    ],
+    [
+      "CLSM (spiking reservoir, untrained)",
+      "0.961",
+      "0.543",
+      "0.672",
+      "59"
+    ]
+  ]
+}

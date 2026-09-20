@@ -91,8 +91,11 @@ def main() -> None:
 
         if ckpt.exists():
             shutil.copy(ckpt, demo / "models" / f"{arch}.pt")
-        elif arch == "copy":
-            torch.save(torch.nn.Module().state_dict(), demo / "models" / "copy.pt")
+        elif arch in ("copy", "noise"):
+            # The controls have no learned weights; save their real (tiny)
+            # state dict so the demo loads them the same way as the rest.
+            from levelset.models import build as _build
+            torch.save(_build(arch).state_dict(), demo / "models" / f"{arch}.pt")
         else:
             continue
         manifest["models"][arch] = {

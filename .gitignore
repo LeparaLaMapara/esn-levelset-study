@@ -1,4 +1,5 @@
 __pycache__/
 *.pt
+!demo/models/*.pt
 runs/
 figures/*.png

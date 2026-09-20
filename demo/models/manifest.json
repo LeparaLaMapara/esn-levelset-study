@@ -1,0 +1,94 @@
+{
+  "models": {
+    "copy": {
+      "arch": "copy",
+      "file": "copy.pt",
+      "kwargs": {},
+      "label": "Copy previous (control)",
+      "note": "predicts no change at all"
+    },
+    "gru": {
+      "arch": "gru",
+      "file": "gru.pt",
+      "kwargs": {
+        "hidden": 512,
+        "fc": 1024,
+        "dropout": 0.1,
+        "head": "spatial"
+      },
+      "label": "CGRU (trained)",
+      "note": ""
+    },
+    "lstm": {
+      "arch": "lstm",
+      "file": "lstm.pt",
+      "kwargs": {
+        "hidden": 512,
+        "fc": 1024,
+        "dropout": 0.1,
+        "head": "spatial"
+      },
+      "label": "CLSTM (trained)",
+      "note": ""
+    },
+    "3dcnn": {
+      "arch": "3dcnn",
+      "file": "3dcnn.pt",
+      "kwargs": {
+        "fc": 1024,
+        "dropout": 0.1,
+        "head": "spatial"
+      },
+      "label": "3DCNN (trained)",
+      "note": ""
+    },
+    "esn": {
+      "arch": "esn",
+      "file": "esn.pt",
+      "kwargs": {
+        "hidden": 512,
+        "fc": 1024,
+        "dropout": 0.1,
+        "head": "spatial",
+        "esn": {
+          "spectral_radius": 1.0,
+          "leak": 0.0713,
+          "sparsity": 0.8,
+          "input_scaling": 1.0,
+          "seed": 1,
+          "sparse": false
+        }
+      },
+      "label": "CESN (reservoir, untrained recurrence)",
+      "note": "recurrent weights fixed at random"
+    },
+    "lsm": {
+      "arch": "lsm",
+      "file": "lsm.pt",
+      "kwargs": {
+        "hidden": 512,
+        "fc": 1024,
+        "dropout": 0.1,
+        "head": "spatial",
+        "lsm": {
+          "spectral_radius": 1.0,
+          "sparsity": 0.8,
+          "input_scaling": 1.0,
+          "beta": 0.9,
+          "alpha": 0.8,
+          "threshold": 0.5,
+          "substeps": 4,
+          "input_mode": "current",
+          "seed": 1,
+          "sparse": false
+        }
+      },
+      "label": "CLSM (spiking reservoir, untrained)",
+      "note": "spiking, recurrent weights fixed"
+    }
+  },
+  "window": 4,
+  "horizon": 10,
+  "mean": 0.49724939465522766,
+  "std": 0.2432805597782135
+}

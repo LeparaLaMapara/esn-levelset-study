@@ -48,7 +48,14 @@ def load_models() -> None:
         kwargs = dict(spec.get("kwargs", {}))
         model = build(spec["arch"], **kwargs)
         state = torch.load(ROOT / "models" / spec["file"], map_location="cpu", weights_only=True)
-        model.load_state_dict(state)
+        # The reservoir is not in the checkpoint: it was stored sparse on the
+        # GPU and is rebuilt here, dense, from the same seed, so it is the same
+        # matrix. Anything else missing is a bug and is raised.
+        missing, unexpected = model.load_state_dict(state, strict=False)
+        allowed = {"cell.w", "cell.w_sparse"}
+        surprise = [k for k in missing if k not in allowed]
+        if surprise or unexpected:
+            raise RuntimeError(f"{name}: unexpected checkpoint mismatch {surprise} {list(unexpected)}")
         model.eval()
         MODELS[name] = model
 
