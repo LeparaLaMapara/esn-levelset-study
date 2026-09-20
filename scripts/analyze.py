@@ -23,10 +23,14 @@ BLOCK_TITLE = {
     "B": "Block B. Spatial head, otherwise the same task",
     "C": "Block C. Window 4, ten steps ahead, spatial head",
     "D": "Block D. Closed form ridge readout, no backpropagation",
-    "E": "Block E. Reservoir hyper-parameter sweep",
+    "E": "Block E. Reservoir hyper-parameter sweep (AdamW: under the thesis recipe the encoder collapses and the liquid never spikes)",
+    "F": "Block F. The thesis head with AdamW: does the recipe or the head explain block A?",
+    "G": "Block G. Main comparison: spatial head, window 4, ten steps ahead, AdamW",
+    "H": "Block H. Block G restricted to the active phase of the evolution",
 }
 
-METRICS = ["iou", "change_iou", "rollout_iou", "rollout_change_iou", "boundary_f1", "fit_seconds"]
+METRICS = ["iou", "change_iou", "rollout_iou", "rollout_change_iou", "boundary_f1",
+           "firing_rate", "fit_seconds"]
 
 ARCH_ORDER = ["copy", "noise", "gru", "lstm", "rnn", "3dcnn", "esn", "lsm"]
 ARCH_LABEL = {
@@ -56,26 +60,38 @@ def agg(values: list[float]) -> tuple[float, float]:
 
 
 def table(rows: list[dict], dataset: str) -> list[str]:
+    # Group by architecture AND readout: a reservoir fitted by ridge regression
+    # is a different method from the same reservoir trained by gradient descent,
+    # and averaging them together hides both.
     by_arch = defaultdict(list)
     for r in rows:
         if r.get("dataset") == dataset:
-            by_arch[r["arch"]].append(r)
+            tag = r["arch"] + ("" if r.get("readout", "sgd") == "sgd" else " + ridge")
+            by_arch[tag].append(r)
     if not by_arch:
         return []
     lines = [
         f"\n**{dataset.upper()}**\n",
-        "| model | IoU | change IoU | rollout IoU | rollout change IoU | boundary F1 | fit s | seeds |",
-        "|---|---|---|---|---|---|---|---|",
+        "| model | IoU | change IoU | rollout IoU | rollout change IoU | boundary F1 | firing | fit s | seeds |",
+        "|---|---|---|---|---|---|---|---|---|",
     ]
-    for arch in ARCH_ORDER:
+    for arch in ARCH_ORDER + [f"{a} + ridge" for a in ("esn", "lsm")]:
         rs = by_arch.get(arch)
         if not rs:
             continue
         cells = []
         for m in METRICS:
             mean, sd = agg([r[m] for r in rs if r.get(m) is not None])
-            cells.append(f"{mean:.3f} ± {sd:.3f}" if m != "fit_seconds" else f"{mean:.0f}")
-        lines.append(f"| {ARCH_LABEL.get(arch, arch)} | " + " | ".join(cells) + f" | {len(rs)} |")
+            if m == "fit_seconds":
+                cells.append(f"{mean:.0f}")
+            elif m == "firing_rate":
+                cells.append("--" if mean == 0 else f"{mean:.2f}")
+            else:
+                cells.append(f"{mean:.3f} ± {sd:.3f}")
+        label = ARCH_LABEL.get(arch.replace(" + ridge", ""), arch)
+        if "ridge" in arch:
+            label += ", ridge readout"
+        lines.append(f"| {label} | " + " | ".join(cells) + f" | {len(rs)} |")
     return lines
 
 
@@ -92,7 +108,7 @@ def sweep_table(rows: list[dict]) -> list[str]:
     if lsm:
         lines += ["\n**Liquid reservoir: trace decay and firing threshold**\n",
                   "| trace decay | threshold | IoU | change IoU | firing rate |", "|---|---|---|---|---|"]
-        for r in sorted(lsm, key=lambda r: (r["lsm_alpha"], r["lsm_beta"] or 0)):
+        for r in sorted(lsm, key=lambda r: (r["lsm_alpha"], r.get("lsm_threshold") or 0)):
             lines.append(f"| {r['lsm_alpha']} | {r.get('lsm_threshold', '')} | {r['iou']:.3f} | "
                          f"{r['change_iou']:.3f} | {r.get('firing_rate', 0):.3f} |")
     return lines
@@ -107,7 +123,7 @@ def main() -> None:
     rows = load(Path(a.runs))
     print(f"# Results\n\n{len(rows)} runs read from {a.runs}.")
 
-    for block in ["A", "B", "C", "D"]:
+    for block in ["A", "F", "B", "C", "G", "H", "D"]:
         rs = [r for r in rows if r["block"] == block]
         if not rs:
             continue

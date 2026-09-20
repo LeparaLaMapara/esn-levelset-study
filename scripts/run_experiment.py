@@ -300,6 +300,7 @@ def main() -> None:
         "lsm_beta": a.lsm_beta if a.arch == "lsm" else None,
         "lsm_alpha": a.lsm_alpha if a.arch == "lsm" else None,
         "lsm_substeps": a.lsm_substeps if a.arch == "lsm" else None,
+        "lsm_threshold": a.lsm_threshold if a.arch == "lsm" else None,
         "torch": torch.__version__,
         "device": torch.cuda.get_device_name(0) if device.type == "cuda" else platform.processor(),
         "commit": _git_commit(),

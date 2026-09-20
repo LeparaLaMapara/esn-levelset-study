@@ -1,0 +1,51 @@
+\subsection{What the original measured}
+
+The dissertation's conclusion was that echo state networks cannot learn the
+variational level set, and that the leaking rate and spectral radius are
+responsible. The first half is not supported by the experiments reported here:
+under every configuration in which the models train at all, the echo state
+network is within seed noise of the trained recurrent networks. The second half
+is a claim about a parameter sensitivity that this study cannot confirm either
+(Table~\ref{tab:blockA} and the sweep): the response surface over spectral
+radius and leak is not systematic at the resolution a single seed per cell can
+resolve, and the differences it shows are smaller than the seed to seed spread
+of a fixed configuration.
+
+What the original did measure, we think, is three properties of its own setup:
+an optimiser that prevents training, a readout that destroys the geometry the
+task is about, and a horizon at which the identity function is close to
+optimal. None of these is a property of reservoir computing.
+
+\subsection{Why the head matters so much here}
+
+The target mask differs from the input mask in a small band around the moving
+front. A decoder with a skip connection can express "copy, then edit the band";
+a globally pooled vector cannot, because every pixel of the output must be
+reconstructed from a representation that has already discarded position. This
+is why the head changes results by more than the choice of recurrent cell does,
+and why a study comparing cells has to control for it.
+
+\subsection{What the reservoirs are actually worth}
+
+On accuracy, nothing separates them from trained networks on this task. On
+cost, the picture depends entirely on how the readout is fitted. Trained by
+gradient descent, as the original did, a reservoir costs what a gated network
+costs and is therefore pointless. Fitted in closed form, it is more than an
+order of magnitude cheaper and gives up a substantial amount of accuracy.
+
+The spiking liquid adds a further consideration the analogue reservoir does
+not: its state is a filtered spike train with a measured firing rate of about a
+quarter, which is the quantity that would matter on neuromorphic hardware where
+cost is counted in spikes rather than in multiplications. On this task it
+matches the analogue reservoir when its readout is trained and falls behind it
+when the readout is solved.
+
+\subsection{A methodological point that outlives this task}
+
+A slowly evolving partial differential equation is an adversarial case for
+whole image overlap metrics. Any metric dominated by the static part of the
+signal will rank a model that predicts stasis above a model that predicts
+motion imperfectly, and both above nothing. Three cheap habits avoid this:
+report the identity baseline, restrict the metric to the region that changes,
+and evaluate at a horizon long enough that the identity baseline fails. The
+first alone would have caught the problem in the original study.

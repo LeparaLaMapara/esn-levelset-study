@@ -1,0 +1,116 @@
+\begin{table}[t]
+\centering\small
+\begin{tabular}{lrrrrrr}
+\toprule
+model & IoU & change IoU & rollout IoU & rollout change IoU & boundary F1 & fit (s) \\
+\midrule
+Copy previous \emph{(control)} & 0.993 {\scriptsize$\pm$ 0.000} & 0.000 {\scriptsize$\pm$ 0.000} & 0.966 {\scriptsize$\pm$ 0.000} & 0.000 {\scriptsize$\pm$ 0.000} & 0.998 {\scriptsize$\pm$ 0.000} & 0 \\
+White noise \emph{(control)} & 0.335 {\scriptsize$\pm$ 0.000} & 0.335 {\scriptsize$\pm$ 0.000} & 0.335 {\scriptsize$\pm$ 0.000} & 0.355 {\scriptsize$\pm$ 0.001} & 0.765 {\scriptsize$\pm$ 0.000} & 0 \\
+CGRU & 0.420 {\scriptsize$\pm$ 0.002} & 0.126 {\scriptsize$\pm$ 0.007} & 0.504 {\scriptsize$\pm$ 0.004} & 0.239 {\scriptsize$\pm$ 0.007} & 0.762 {\scriptsize$\pm$ 0.001} & 8 \\
+CLSTM & 0.420 {\scriptsize$\pm$ 0.002} & 0.126 {\scriptsize$\pm$ 0.007} & 0.504 {\scriptsize$\pm$ 0.004} & 0.239 {\scriptsize$\pm$ 0.007} & 0.762 {\scriptsize$\pm$ 0.001} & 8 \\
+CRNN & 0.420 {\scriptsize$\pm$ 0.002} & 0.126 {\scriptsize$\pm$ 0.007} & 0.504 {\scriptsize$\pm$ 0.004} & 0.239 {\scriptsize$\pm$ 0.007} & 0.762 {\scriptsize$\pm$ 0.001} & 8 \\
+3DCNN & 0.420 {\scriptsize$\pm$ 0.002} & 0.126 {\scriptsize$\pm$ 0.007} & 0.504 {\scriptsize$\pm$ 0.004} & 0.239 {\scriptsize$\pm$ 0.007} & 0.762 {\scriptsize$\pm$ 0.001} & 5 \\
+CESN \emph{(reservoir)} & 0.420 {\scriptsize$\pm$ 0.002} & 0.126 {\scriptsize$\pm$ 0.007} & 0.504 {\scriptsize$\pm$ 0.004} & 0.239 {\scriptsize$\pm$ 0.007} & 0.762 {\scriptsize$\pm$ 0.001} & 8 \\
+\bottomrule
+\end{tabular}
+\caption{WSD. The published configuration reproduced: fully connected head, window one, one step ahead, SGD at learning rate 0.1 with weight decay 0.1. Every model collapses to a constant output, and none approaches the copy control.}
+\label{tab:blockA}
+\end{table}
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{lrrrrrr}
+\toprule
+model & IoU & change IoU & rollout IoU & rollout change IoU & boundary F1 & fit (s) \\
+\midrule
+Copy previous \emph{(control)} & 0.993 {\scriptsize$\pm$ 0.000} & 0.000 {\scriptsize$\pm$ 0.000} & 0.971 {\scriptsize$\pm$ 0.000} & 0.000 {\scriptsize$\pm$ 0.000} & 0.998 {\scriptsize$\pm$ 0.000} & 0 \\
+White noise \emph{(control)} & 0.336 {\scriptsize$\pm$ 0.000} & 0.338 {\scriptsize$\pm$ 0.000} & 0.336 {\scriptsize$\pm$ 0.000} & 0.336 {\scriptsize$\pm$ 0.001} & 0.759 {\scriptsize$\pm$ 0.000} & 0 \\
+CGRU & 0.457 {\scriptsize$\pm$ 0.002} & 0.170 {\scriptsize$\pm$ 0.004} & 0.548 {\scriptsize$\pm$ 0.004} & 0.278 {\scriptsize$\pm$ 0.007} & 0.759 {\scriptsize$\pm$ 0.001} & 23 \\
+CLSTM & 0.457 {\scriptsize$\pm$ 0.002} & 0.170 {\scriptsize$\pm$ 0.004} & 0.548 {\scriptsize$\pm$ 0.004} & 0.278 {\scriptsize$\pm$ 0.007} & 0.759 {\scriptsize$\pm$ 0.001} & 21 \\
+CRNN & 0.457 {\scriptsize$\pm$ 0.002} & 0.170 {\scriptsize$\pm$ 0.004} & 0.548 {\scriptsize$\pm$ 0.004} & 0.278 {\scriptsize$\pm$ 0.007} & 0.759 {\scriptsize$\pm$ 0.001} & 21 \\
+3DCNN & 0.457 {\scriptsize$\pm$ 0.002} & 0.170 {\scriptsize$\pm$ 0.004} & 0.548 {\scriptsize$\pm$ 0.004} & 0.278 {\scriptsize$\pm$ 0.007} & 0.759 {\scriptsize$\pm$ 0.001} & 23 \\
+CESN \emph{(reservoir)} & 0.457 {\scriptsize$\pm$ 0.002} & 0.170 {\scriptsize$\pm$ 0.004} & 0.548 {\scriptsize$\pm$ 0.004} & 0.278 {\scriptsize$\pm$ 0.007} & 0.759 {\scriptsize$\pm$ 0.001} & 21 \\
+\bottomrule
+\end{tabular}
+\caption{BSD. The published configuration reproduced: fully connected head, window one, one step ahead, SGD at learning rate 0.1 with weight decay 0.1. Every model collapses to a constant output, and none approaches the copy control.}
+\label{tab:blockAbsd}
+\end{table}
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{lrrrrrr}
+\toprule
+model & IoU & change IoU & rollout IoU & rollout change IoU & boundary F1 & fit (s) \\
+\midrule
+CGRU & 0.806 {\scriptsize$\pm$ 0.001} & 0.332 {\scriptsize$\pm$ 0.006} & 0.846 {\scriptsize$\pm$ 0.004} & 0.349 {\scriptsize$\pm$ 0.005} & 0.909 {\scriptsize$\pm$ 0.001} & 15 \\
+CLSTM & 0.801 {\scriptsize$\pm$ 0.001} & 0.324 {\scriptsize$\pm$ 0.010} & 0.839 {\scriptsize$\pm$ 0.005} & 0.345 {\scriptsize$\pm$ 0.013} & 0.906 {\scriptsize$\pm$ 0.001} & 15 \\
+3DCNN & 0.796 {\scriptsize$\pm$ 0.001} & 0.286 {\scriptsize$\pm$ 0.005} & 0.843 {\scriptsize$\pm$ 0.002} & 0.332 {\scriptsize$\pm$ 0.009} & 0.907 {\scriptsize$\pm$ 0.000} & 10 \\
+CESN \emph{(reservoir)} & 0.786 {\scriptsize$\pm$ 0.000} & 0.302 {\scriptsize$\pm$ 0.003} & 0.833 {\scriptsize$\pm$ 0.005} & 0.314 {\scriptsize$\pm$ 0.009} & 0.899 {\scriptsize$\pm$ 0.001} & 15 \\
+CLSM \emph{(spiking reservoir)} & 0.587 {\scriptsize$\pm$ 0.040} & 0.383 {\scriptsize$\pm$ 0.044} & 0.372 {\scriptsize$\pm$ 0.029} & 0.395 {\scriptsize$\pm$ 0.075} & 0.810 {\scriptsize$\pm$ 0.031} & 8 \\
+\bottomrule
+\end{tabular}
+\caption{WSD. The same head and task with AdamW instead. The recipe, not the head alone, explains the collapse in Table~\ref{tab:blockA}.}
+\label{tab:blockF}
+\end{table}
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{lrrrrrr}
+\toprule
+model & IoU & change IoU & rollout IoU & rollout change IoU & boundary F1 & fit (s) \\
+\midrule
+CGRU & 0.834 {\scriptsize$\pm$ 0.000} & 0.321 {\scriptsize$\pm$ 0.008} & 0.867 {\scriptsize$\pm$ 0.002} & 0.366 {\scriptsize$\pm$ 0.007} & 0.931 {\scriptsize$\pm$ 0.001} & 35 \\
+CLSTM & 0.830 {\scriptsize$\pm$ 0.002} & 0.310 {\scriptsize$\pm$ 0.003} & 0.863 {\scriptsize$\pm$ 0.002} & 0.358 {\scriptsize$\pm$ 0.010} & 0.928 {\scriptsize$\pm$ 0.002} & 37 \\
+3DCNN & 0.820 {\scriptsize$\pm$ 0.000} & 0.309 {\scriptsize$\pm$ 0.005} & 0.850 {\scriptsize$\pm$ 0.001} & 0.340 {\scriptsize$\pm$ 0.004} & 0.918 {\scriptsize$\pm$ 0.000} & 26 \\
+CESN \emph{(reservoir)} & 0.818 {\scriptsize$\pm$ 0.002} & 0.316 {\scriptsize$\pm$ 0.013} & 0.847 {\scriptsize$\pm$ 0.005} & 0.351 {\scriptsize$\pm$ 0.013} & 0.915 {\scriptsize$\pm$ 0.002} & 35 \\
+CLSM \emph{(spiking reservoir)} & 0.622 {\scriptsize$\pm$ 0.026} & 0.426 {\scriptsize$\pm$ 0.053} & 0.396 {\scriptsize$\pm$ 0.031} & 0.425 {\scriptsize$\pm$ 0.065} & 0.796 {\scriptsize$\pm$ 0.038} & 29 \\
+\bottomrule
+\end{tabular}
+\caption{BSD. The same head and task with AdamW instead. The recipe, not the head alone, explains the collapse in Table~\ref{tab:blockA}.}
+\label{tab:blockFbsd}
+\end{table}
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{lrrrrrr}
+\toprule
+model & IoU & change IoU & rollout IoU & rollout change IoU & boundary F1 & fit (s) \\
+\midrule
+Copy previous \emph{(control)} & 0.925 {\scriptsize$\pm$ 0.000} & 0.000 {\scriptsize$\pm$ 0.000} & 0.967 {\scriptsize$\pm$ 0.000} & 0.000 {\scriptsize$\pm$ 0.000} & 0.956 {\scriptsize$\pm$ 0.000} & 0 \\
+White noise \emph{(control)} & 0.336 {\scriptsize$\pm$ 0.000} & 0.336 {\scriptsize$\pm$ 0.001} & 0.335 {\scriptsize$\pm$ 0.000} & 0.337 {\scriptsize$\pm$ 0.002} & 0.732 {\scriptsize$\pm$ 0.000} & 0 \\
+CGRU & 0.964 {\scriptsize$\pm$ 0.000} & 0.523 {\scriptsize$\pm$ 0.018} & 0.804 {\scriptsize$\pm$ 0.085} & 0.520 {\scriptsize$\pm$ 0.187} & 0.993 {\scriptsize$\pm$ 0.000} & 53 \\
+CLSTM & 0.963 {\scriptsize$\pm$ 0.001} & 0.531 {\scriptsize$\pm$ 0.043} & 0.784 {\scriptsize$\pm$ 0.085} & 0.532 {\scriptsize$\pm$ 0.199} & 0.993 {\scriptsize$\pm$ 0.001} & 41 \\
+CRNN & 0.963 {\scriptsize$\pm$ 0.002} & 0.549 {\scriptsize$\pm$ 0.014} & 0.720 {\scriptsize$\pm$ 0.044} & 0.672 {\scriptsize$\pm$ 0.049} & 0.993 {\scriptsize$\pm$ 0.001} & 33 \\
+3DCNN & 0.938 {\scriptsize$\pm$ 0.001} & 0.490 {\scriptsize$\pm$ 0.005} & 0.579 {\scriptsize$\pm$ 0.003} & 0.731 {\scriptsize$\pm$ 0.004} & 0.992 {\scriptsize$\pm$ 0.000} & 47 \\
+CESN \emph{(reservoir)} & 0.962 {\scriptsize$\pm$ 0.002} & 0.515 {\scriptsize$\pm$ 0.044} & 0.806 {\scriptsize$\pm$ 0.087} & 0.543 {\scriptsize$\pm$ 0.179} & 0.993 {\scriptsize$\pm$ 0.001} & 40 \\
+CLSM \emph{(spiking reservoir)} & 0.962 {\scriptsize$\pm$ 0.002} & 0.511 {\scriptsize$\pm$ 0.028} & 0.733 {\scriptsize$\pm$ 0.053} & 0.668 {\scriptsize$\pm$ 0.055} & 0.993 {\scriptsize$\pm$ 0.001} & 50 \\
+CESN \emph{(reservoir)}, ridge readout & 0.646 {\scriptsize$\pm$ 0.030} & 0.305 {\scriptsize$\pm$ 0.015} & 0.401 {\scriptsize$\pm$ 0.030} & 0.375 {\scriptsize$\pm$ 0.048} & 0.826 {\scriptsize$\pm$ 0.016} & 1 \\
+CLSM \emph{(spiking reservoir)}, ridge readout & 0.437 {\scriptsize$\pm$ 0.013} & 0.235 {\scriptsize$\pm$ 0.008} & 0.394 {\scriptsize$\pm$ 0.007} & 0.327 {\scriptsize$\pm$ 0.021} & 0.713 {\scriptsize$\pm$ 0.007} & 3 \\
+\bottomrule
+\end{tabular}
+\caption{WSD. The corrected setting: spatial decoder head, window four, ten iterations ahead, AdamW. Change IoU scores only the pixels whose label differs between the last input mask and the target.}
+\label{tab:blockG}
+\end{table}
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{lrrrrrr}
+\toprule
+model & IoU & change IoU & rollout IoU & rollout change IoU & boundary F1 & fit (s) \\
+\midrule
+Copy previous \emph{(control)} & 0.922 {\scriptsize$\pm$ 0.000} & 0.000 {\scriptsize$\pm$ 0.000} & 0.970 {\scriptsize$\pm$ 0.000} & 0.000 {\scriptsize$\pm$ 0.000} & 0.956 {\scriptsize$\pm$ 0.000} & 0 \\
+White noise \emph{(control)} & 0.336 {\scriptsize$\pm$ 0.000} & 0.337 {\scriptsize$\pm$ 0.000} & 0.336 {\scriptsize$\pm$ 0.000} & 0.320 {\scriptsize$\pm$ 0.002} & 0.724 {\scriptsize$\pm$ 0.000} & 0 \\
+CGRU & 0.971 {\scriptsize$\pm$ 0.000} & 0.593 {\scriptsize$\pm$ 0.008} & 0.766 {\scriptsize$\pm$ 0.021} & 0.544 {\scriptsize$\pm$ 0.009} & 0.996 {\scriptsize$\pm$ 0.000} & 104 \\
+CLSTM & 0.970 {\scriptsize$\pm$ 0.001} & 0.581 {\scriptsize$\pm$ 0.016} & 0.815 {\scriptsize$\pm$ 0.041} & 0.408 {\scriptsize$\pm$ 0.096} & 0.995 {\scriptsize$\pm$ 0.000} & 104 \\
+CRNN & 0.970 {\scriptsize$\pm$ 0.000} & 0.578 {\scriptsize$\pm$ 0.010} & 0.812 {\scriptsize$\pm$ 0.044} & 0.474 {\scriptsize$\pm$ 0.077} & 0.996 {\scriptsize$\pm$ 0.000} & 106 \\
+3DCNN & 0.958 {\scriptsize$\pm$ 0.000} & 0.505 {\scriptsize$\pm$ 0.003} & 0.608 {\scriptsize$\pm$ 0.009} & 0.698 {\scriptsize$\pm$ 0.010} & 0.994 {\scriptsize$\pm$ 0.000} & 84 \\
+CESN \emph{(reservoir)} & 0.968 {\scriptsize$\pm$ 0.001} & 0.553 {\scriptsize$\pm$ 0.005} & 0.786 {\scriptsize$\pm$ 0.055} & 0.519 {\scriptsize$\pm$ 0.036} & 0.995 {\scriptsize$\pm$ 0.000} & 100 \\
+CLSM \emph{(spiking reservoir)} & 0.968 {\scriptsize$\pm$ 0.001} & 0.552 {\scriptsize$\pm$ 0.012} & 0.758 {\scriptsize$\pm$ 0.007} & 0.572 {\scriptsize$\pm$ 0.023} & 0.995 {\scriptsize$\pm$ 0.000} & 138 \\
+CESN \emph{(reservoir)}, ridge readout & 0.650 {\scriptsize$\pm$ 0.026} & 0.320 {\scriptsize$\pm$ 0.031} & 0.398 {\scriptsize$\pm$ 0.038} & 0.377 {\scriptsize$\pm$ 0.095} & 0.825 {\scriptsize$\pm$ 0.017} & 3 \\
+CLSM \emph{(spiking reservoir)}, ridge readout & 0.470 {\scriptsize$\pm$ 0.010} & 0.282 {\scriptsize$\pm$ 0.008} & 0.437 {\scriptsize$\pm$ 0.012} & 0.325 {\scriptsize$\pm$ 0.017} & 0.694 {\scriptsize$\pm$ 0.007} & 7 \\
+\bottomrule
+\end{tabular}
+\caption{BSD. The corrected setting: spatial decoder head, window four, ten iterations ahead, AdamW. Change IoU scores only the pixels whose label differs between the last input mask and the target.}
+\label{tab:blockGbsd}
+\end{table}
+

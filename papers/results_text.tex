@@ -1,0 +1,76 @@
+\subsection{The published configuration reproduces nothing that can be compared}
+
+Under the original's own recipe (Table~\ref{tab:blockA}) every architecture
+returns the same numbers to three decimal places: \Awsdgruiou{} IoU on WSD for
+the gated recurrent unit, the long short term memory, the plain recurrent
+network, the 3D convolutional network and the echo state network alike. The
+cause is visible in the predictions rather than the metrics: the models emit a
+constant 0.5 everywhere, so thresholding produces one fixed mask for every
+input. Weight decay of 0.1 applied at a learning rate of 0.1 shrinks the
+encoder faster than the loss can shape it.
+
+Two consequences follow. First, the differences between cells reported in the
+original are differences between degenerate models. Second, the white noise
+control (\Awsdnoiseiou{} IoU) is not a floor that a collapsed model clears by
+learning; it is simply what a fixed mask scores against a slowly moving target.
+
+The copy control settles the point. Predicting that nothing changes scores
+\Awsdcopyiou{} IoU on WSD and \Absdcopyiou{} on BSD, above every figure in the
+original study. Whatever those models were ranked on, it was not the ability to
+predict the level set.
+
+\subsection{The optimiser and the head are separable causes}
+
+Replacing the optimiser alone (Table~\ref{tab:blockF}) removes the collapse:
+the same fully connected head now reaches \Fwsdgruiou{} IoU for the gated
+recurrent unit and \Fwsdesniou{} for the echo state network, with change IoU of
+\Fwsdgruchangeiou{} and \Fwsdesnchangeiou{} respectively. The architecture was
+never the reason nothing trained.
+
+Replacing the head as well (Table~\ref{tab:blockG}) lifts every model to about
+\Gwsdgruiou{} IoU. The gap between the two heads is far larger than any gap
+between recurrent cells, which is the central measurement of this paper: the
+original compared cells through a bottleneck that dominated the result.
+
+\subsection{Once the task discriminates, the cells do not}
+
+At a ten iteration horizon with a four frame window, scoring only the pixels
+that move, the ordering the original reported does not appear at all
+(Table~\ref{tab:blockG}). On WSD the change IoU values are
+\Gwsdgruchangeiou{} (CGRU), \Gwsdlstmchangeiou{} (CLSTM),
+\Gwsdrnnchangeiou{} (CRNN), \Gwsdesnchangeiou{} (CESN) and
+\Gwsdlsmchangeiou{} (CLSM), a spread comparable to the seed to seed standard
+deviation of each arm. On BSD the same holds. An untrained random reservoir,
+analogue or spiking, matches networks trained end to end.
+
+The original reported the echo state network at roughly a third of the gated
+recurrent unit's IoU. That gap is not reproduced here under any configuration
+in which both models train at all.
+
+\subsection{What the cheap readout costs}
+
+Fitting only a linear readout in closed form, with no backpropagation anywhere
+and a frozen random encoder, takes \Gwsdesnridgefitseconds{} seconds on WSD
+against \Gwsdesnfitseconds{} seconds for the gradient trained reservoir, a
+reduction of more than an order of magnitude. It is also clearly worse:
+\Gwsdesnridgechangeiou{} change IoU against \Gwsdesnchangeiou{}. The spiking
+liquid loses more than the analogue reservoir does
+(\Gwsdlsmridgechangeiou{}), which is consistent with its state being a
+filtered spike train rather than a continuous activation.
+
+This is the honest form of the reservoir argument. A reservoir is cheap when it
+is fitted the way reservoirs are meant to be fitted, and on this task that
+cheapness costs accuracy. Training the readout by gradient descent, as the
+original did, buys the accuracy back and gives up the cost advantage: its
+fitting time is then the same as a trained recurrent network's.
+
+\subsection{Rollout separates conservative models from dynamic ones}
+
+Under free running rollout the global and change metrics move in opposite
+directions. The gated models keep a higher whole image IoU
+(\Gwsdgrurolloutiou{} for CGRU) while the 3D convolutional network and the
+reservoirs score higher on the moving front (\GwsdTdcnnrolloutchangeiou{}
+and \Gwsdesnrolloutchangeiou{} against \Gwsdgrurolloutchangeiou{}). A model
+that predicts little change tracks a slow target well in aggregate and captures
+none of its motion. Reporting only one of these numbers would support either
+conclusion, which is why both are in the table.

@@ -1,0 +1,44 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{A no-op beats every published number.}{1}{section*.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{The published recipe does not train.}{1}{section*.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{The readout discards the geometry.}{2}{section*.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Background}{2}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}The Chan--Vese level set as a sequence}{2}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Reservoir computing}{2}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Method}{2}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Task}{2}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Architectures}{2}{subsection.3.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces WSD. The published configuration reproduced: fully connected head, window one, one step ahead, SGD at learning rate 0.1 with weight decay 0.1. Every model collapses to a constant output, and none approaches the copy control.}}{3}{table.caption.4}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{tab:blockA}{{1}{3}{WSD. The published configuration reproduced: fully connected head, window one, one step ahead, SGD at learning rate 0.1 with weight decay 0.1. Every model collapses to a constant output, and none approaches the copy control}{table.caption.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Reservoir training}{3}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Metrics}{3}{subsection.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Implementation}{3}{subsection.3.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Results}{3}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}The published configuration reproduces nothing that can be compared}{3}{subsection.4.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces BSD. The published configuration reproduced: fully connected head, window one, one step ahead, SGD at learning rate 0.1 with weight decay 0.1. Every model collapses to a constant output, and none approaches the copy control.}}{4}{table.caption.5}\protected@file@percent }
+\newlabel{tab:blockAbsd}{{2}{4}{BSD. The published configuration reproduced: fully connected head, window one, one step ahead, SGD at learning rate 0.1 with weight decay 0.1. Every model collapses to a constant output, and none approaches the copy control}{table.caption.5}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces WSD. The same head and task with AdamW instead. The recipe, not the head alone, explains the collapse in Table~\ref {tab:blockA}.}}{4}{table.caption.6}\protected@file@percent }
+\newlabel{tab:blockF}{{3}{4}{WSD. The same head and task with AdamW instead. The recipe, not the head alone, explains the collapse in Table~\ref {tab:blockA}}{table.caption.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}The optimiser and the head are separable causes}{4}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Once the task discriminates, the cells do not}{4}{subsection.4.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces BSD. The same head and task with AdamW instead. The recipe, not the head alone, explains the collapse in Table~\ref {tab:blockA}.}}{5}{table.caption.7}\protected@file@percent }
+\newlabel{tab:blockFbsd}{{4}{5}{BSD. The same head and task with AdamW instead. The recipe, not the head alone, explains the collapse in Table~\ref {tab:blockA}}{table.caption.7}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces WSD. The corrected setting: spatial decoder head, window four, ten iterations ahead, AdamW. Change IoU scores only the pixels whose label differs between the last input mask and the target.}}{5}{table.caption.8}\protected@file@percent }
+\newlabel{tab:blockG}{{5}{5}{WSD. The corrected setting: spatial decoder head, window four, ten iterations ahead, AdamW. Change IoU scores only the pixels whose label differs between the last input mask and the target}{table.caption.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}What the cheap readout costs}{5}{subsection.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Rollout separates conservative models from dynamic ones}{5}{subsection.4.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Discussion}{5}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}What the original measured}{5}{subsection.5.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces BSD. The corrected setting: spatial decoder head, window four, ten iterations ahead, AdamW. Change IoU scores only the pixels whose label differs between the last input mask and the target.}}{6}{table.caption.9}\protected@file@percent }
+\newlabel{tab:blockGbsd}{{6}{6}{BSD. The corrected setting: spatial decoder head, window four, ten iterations ahead, AdamW. Change IoU scores only the pixels whose label differs between the last input mask and the target}{table.caption.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Why the head matters so much here}{6}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}What the reservoirs are actually worth}{6}{subsection.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}A methodological point that outlives this task}{6}{subsection.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Limitations}{7}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Reproducing this}{7}{section.7}\protected@file@percent }
+\gdef \@abspage@last{7}

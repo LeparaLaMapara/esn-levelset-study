@@ -31,7 +31,7 @@ that the echo state network failed and attributing the failure to the leaking
 rate and spectral radius of its reservoir. We reproduce that study on GPU and
 find that its comparison was made in a regime where no model could have
 succeeded. Predicting the next level set iterate is almost solved by copying
-the previous mask, which scores an IoU of \AwsdcopyIoU{} and sits above every
+the previous mask, which scores an IoU of \Awsdcopyiou{} and sits above every
 number the original reported; and under the published optimisation recipe every
 architecture, trained or untrained, collapses to a constant output. We correct
 three things: the readout, which reconstructed a $64 \times 64$ mask from a
@@ -64,7 +64,7 @@ with reservoirs and everything to do with how the comparison was set up.
 \paragraph{A no-op beats every published number.}
 The Chan--Vese front moves roughly half a percent of pixels per iteration. A
 model that predicts no change at all therefore scores an IoU of
-\AwsdcopyIoU{} on WSD, well above the best model in the original study. A
+\Awsdcopyiou{} on WSD, well above the best model in the original study. A
 comparison whose winner loses to the identity function is not measuring what it
 intends to measure.
 
@@ -172,6 +172,49 @@ are CUDA operations, so there is no host side input pipeline. Reservoir
 recurrence uses sparse CSR matrix multiplication, in float32 because cuSPARSE
 provides no half precision path on this architecture, inside otherwise
 mixed precision training.
+
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{trajectory_wsd.png}
+\caption{The target sequence. A checkerboard level set holds its shape for tens
+of iterations, collapses over a narrow active phase, and converges to a
+segmentation that agrees with the Weizmann human annotations at about 0.87 IoU.
+The models are asked to predict forward inside this process.}
+\label{fig:trajectory}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{qualitative_wsd_G.png}
+\caption{Predictions ten iterations ahead, at the moment of each sequence where
+the front moves most. Orange outlines the pixels whose label changes, which is
+the region change IoU scores; everything outside it is reproduced by copying.}
+\label{fig:qualitative}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.49\textwidth]{rollout_wsd_G.png}
+\hfill
+\includegraphics[width=0.49\textwidth]{horizons_wsd_G.png}
+\caption{Left: free running rollout, where errors compound and the copy
+control's advantage decays. Right: change region accuracy against prediction
+horizon. The horizon the original used is the leftmost point, where the task is
+nearly solved by the identity.}
+\label{fig:curves}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.62\textwidth]{sweep_esn.png}
+\caption{The reservoir parameters the original blamed for the echo state
+network's failure, swept directly under a configuration in which the model
+trains. One seed per cell: the variation shown is comparable to the seed to
+seed spread of a fixed configuration, so this is a map of noise as much as of
+structure, and is reported as inconclusive rather than as a tuning law.}
+\label{fig:sweep}
+\end{figure}
 
 \input{tables}
 

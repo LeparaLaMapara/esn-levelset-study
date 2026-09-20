@@ -101,14 +101,19 @@ def trials(block: str) -> list[dict]:
                             optimizer="adamw", lr=1e-3, weight_decay=0.01, min_change=0.005))
 
     if block in ("E", "all"):
+        # AdamW, not the thesis recipe: under SGD with weight decay 0.1 the
+        # encoder collapses, the reservoir receives no drive (the liquid's
+        # measured firing rate is exactly zero), and the sweep would compare
+        # reservoirs that are never excited.
+        common = dict(optimizer="adamw", lr=1e-3, weight_decay=0.01)
         for rho, leak in itertools.product([0.5, 0.9, 1.1, 1.5], [0.0078125, 0.0713, 0.5, 1.0]):
             out.append(dict(name=f"E_wsd_esn_r{rho}_l{leak}", arch="esn", dataset="wsd", seed=1,
-                            head="spatial", window=4, horizon=10, epochs=4,
-                            spectral_radius=rho, leak=leak))
+                            head="spatial", window=4, horizon=10, epochs=6,
+                            spectral_radius=rho, leak=leak, **common))
         for alpha, thr in itertools.product([0.5, 0.8, 0.95], [0.3, 0.5, 0.8]):
             out.append(dict(name=f"E_wsd_lsm_a{alpha}_t{thr}", arch="lsm", dataset="wsd", seed=1,
-                            head="spatial", window=4, horizon=10, epochs=4,
-                            lsm_alpha=alpha, lsm_threshold=thr))
+                            head="spatial", window=4, horizon=10, epochs=6,
+                            lsm_alpha=alpha, lsm_threshold=thr, **common))
     return out
 
 
