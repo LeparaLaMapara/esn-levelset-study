@@ -3,3 +3,8 @@ __pycache__/
 !demo/models/*.pt
 runs/
 figures/*.png
+
+papers/*.aux
+papers/*.log
+papers/*.out
+papers/*.png

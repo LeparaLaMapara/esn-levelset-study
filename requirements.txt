@@ -1,0 +1,6 @@
+# Research environment (GPU). The demo has its own, CPU only: demo/requirements.txt
+torch>=2.11
+numpy>=2.0
+pillow>=10
+matplotlib>=3.9
+scikit-image>=0.24   # only to cross check the Chan-Vese implementation
